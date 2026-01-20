@@ -5603,126 +5603,10 @@ let ADVICE_DATA = currentLang === 'en' ? ADVICE_DATA_EN
       
       showScreen('result');
       
-      try {
-        const baseData = ADVICE_DATA[currentJob][currentState];
-        const now = new Date();
-        const today = now.toLocaleDateString(currentLang === 'en' ? 'en-US' : 'ko-KR', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric',
-          weekday: 'long'
-        });
-        
-        const hour = now.getHours();
-        let timeOfDay, timeContext;
-        
-        if (hour >= 5 && hour < 12) {
-          timeOfDay = currentLang === 'en' ? 'morning' : currentLang === 'ja' ? '朝' : currentLang === 'zh' ? '上午' : '오전';
-          timeContext = currentLang === 'en' ? 'Start of the day - focus on setting up for success' 
-            : currentLang === 'ja' ? '一日の始まり - 成功のための準備に焦点を当てる'
-            : currentLang === 'zh' ? '一天的开始 - 专注于为成功做准备'
-            : '하루의 시작 - 성공적인 하루를 위한 준비';
-        } else if (hour >= 12 && hour < 17) {
-          timeOfDay = currentLang === 'en' ? 'afternoon' : currentLang === 'ja' ? '午後' : currentLang === 'zh' ? '下午' : '오후';
-          timeContext = currentLang === 'en' ? 'Midday - maintain energy and handle remaining tasks'
-            : currentLang === 'ja' ? '日中 - エネルギーを維持し、残りのタスクを処理する'
-            : currentLang === 'zh' ? '中午 - 保持精力处理剩余任务'
-            : '한낮 - 에너지 유지하며 남은 일 처리';
-        } else if (hour >= 17 && hour < 21) {
-          timeOfDay = currentLang === 'en' ? 'evening' : currentLang === 'ja' ? '夕方' : currentLang === 'zh' ? '傍晚' : '저녁';
-          timeContext = currentLang === 'en' ? 'Evening - wrap up work and prepare for rest'
-            : currentLang === 'ja' ? '夕方 - 仕事を終えて休息の準備をする'
-            : currentLang === 'zh' ? '傍晚 - 结束工作准备休息'
-            : '저녁 - 마무리하고 휴식 준비';
-        } else {
-          timeOfDay = currentLang === 'en' ? 'night' : currentLang === 'ja' ? '夜' : currentLang === 'zh' ? '晚上' : '밤';
-          timeContext = currentLang === 'en' ? 'Night - wind down and prepare for tomorrow'
-            : currentLang === 'ja' ? '夜 - リラックスして明日の準備をする'
-            : currentLang === 'zh' ? '晚上 - 放松并为明天做准备'
-            : '밤 - 긴장 풀고 내일 준비';
-        }
-        
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1500,
-            messages: [{
-              role: 'user',
-              content: `You are a helpful daily life advisor. Today is ${today}.
-Current time: ${timeOfDay} (${hour}:00)
-Time context: ${timeContext}
-
-Job: ${currentJob}
-Current mood/state: ${currentState}
-
-Based on this existing advice template:
-Category: ${baseData.category}
-Warning: ${baseData.bad}
-Solutions: ${baseData.avoid.join(', ')}
-Help: ${baseData.help.map(h => `${h.title} - ${h.desc}`).join(', ')}
-
-Create a COMPLETELY NEW and UNIQUE personalized advice for THIS SPECIFIC TIME OF DAY that:
-1. Is tailored to ${timeOfDay} - consider what someone would be doing at this hour
-2. Solutions should be appropriate for ${timeOfDay} activities
-3. Help tips should match ${timeOfDay} routines (e.g., morning: coffee/breakfast, afternoon: snacks/breaks, evening: dinner/relaxation, night: sleep preparation)
-4. Include today's specific date/day context (${today})
-5. Has a warm, friendly tone
-6. Provides 3 specific, actionable solutions for ${timeOfDay}
-7. Provides 3 helpful tips with icon, title, and description suitable for ${timeOfDay}
-
-CRITICAL - UNIQUENESS REQUIREMENT:
-- Every response must be DIFFERENT from previous ones
-- Use creative variations in wording, examples, and suggestions
-- Even if the same person asks multiple times, provide fresh perspectives
-- Vary the specific advice, examples, and metaphors each time
-- Think of 3-5 different ways to express similar ideas and choose randomly
-- Random element ${Math.random().toString(36).substring(7)} ensures variation
-
-IMPORTANT: Make sure solutions and help are time-appropriate:
-- Morning: breakfast, commute, starting work
-- Afternoon: lunch, afternoon slump, remaining tasks
-- Evening: wrapping up, dinner, family time
-- Night: winding down, sleep hygiene, tomorrow prep
-
-Respond in ${currentLang === 'en' ? 'English' : currentLang === 'ja' ? 'Japanese' : currentLang === 'zh' ? 'Chinese' : 'Korean'} in this JSON format:
-{
-  "category": "category name",
-  "warning": "today's specific warning message for ${timeOfDay}",
-  "solutions": ["solution 1 for ${timeOfDay}", "solution 2 for ${timeOfDay}", "solution 3 for ${timeOfDay}"],
-  "help": [
-    {"icon": "💧", "label": "Drink/Method/Activity", "title": "title", "desc": "description for ${timeOfDay}"},
-    {"icon": "😴", "label": "Drink/Method/Activity", "title": "title", "desc": "description for ${timeOfDay}"},
-    {"icon": "🙆", "label": "Drink/Method/Activity", "title": "title", "desc": "description for ${timeOfDay}"}
-  ]
-}
-
-Only return the JSON, no other text.`
-            }]
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.content && data.content[0] && data.content[0].text) {
-          let aiText = data.content[0].text.trim();
-          
-          aiText = aiText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          
-          const aiAdvice = JSON.parse(aiText);
-          
-          displayAIAdvice(aiAdvice);
-        } else {
-          throw new Error('Invalid API response');
-        }
-        
-      } catch (error) {
-        console.error('AI advice generation failed:', error);
+      // 0.8초 후 정적 조언 표시
+      setTimeout(() => {
         displayStaticAdvice();
-      }
+      }, 800);
     }
     
     function displayAIAdvice(aiAdvice) {
@@ -5784,14 +5668,55 @@ Only return the JSON, no other text.`
     
     function displayStaticAdvice() {
       const data = ADVICE_DATA[currentJob][currentState];
+      const content = document.getElementById('result').querySelector('.content');
+      const bottomFixed = document.getElementById('result').querySelector('.bottom-fixed');
       
-      document.getElementById('categoryBadge').textContent = data.category;
-      document.getElementById('badText').textContent = data.bad;
+      // 도움 카드 HTML 생성
+      const helpCardsHTML = data.help.map(help => `
+        <div class="help-card">
+          <div class="help-header">
+            <div class="help-icon">${help.icon}</div>
+            <div style="flex:1;">
+              <div class="help-label">${help.label}</div>
+              <div class="help-title">${help.title}</div>
+            </div>
+          </div>
+          <div class="help-desc">${help.desc}</div>
+        </div>
+      `).join('');
       
-      document.getElementById('solutionsList').innerHTML = data.avoid
-        .map(item => `<div class="solution-item">${item}</div>`)
-        .join('');
+      // 결과 화면에 전부 다 표시 (한 화면에 합침!)
+      content.innerHTML = `
+        <div class="result-hero">
+          <span class="result-category" id="categoryBadge">${data.category}</span>
+          <div class="result-bad" id="badText">${data.bad}</div>
+        </div>
+        
+        <div class="solutions-section">
+          <h3 class="section-title">${t('solutions')}</h3>
+          <div id="solutionsList">
+            ${data.avoid.map(item => `<div class="solution-item">${item}</div>`).join('')}
+          </div>
+        </div>
+        
+        <div class="solutions-section">
+          <h3 class="section-title">${t('moreHelp')}</h3>
+          <div id="helpCardsList">
+            ${helpCardsHTML}
+          </div>
+        </div>
+        
+        <div class="share-row">
+          <button class="share-btn" onclick="showShareCard()">${t('share')}</button>
+        </div>
+      `;
       
+      // 하단 버튼 (확인했어요만!)
+      bottomFixed.innerHTML = `
+        <button class="btn btn-primary" onclick="goToEnding()">${t('confirm')}</button>
+      `;
+      
+      // 통계 저장
       saveStats();
     }
     
@@ -5917,10 +5842,22 @@ Only return the JSON, no other text.`
     function showShareCard() {
       const data = ADVICE_DATA[currentJob][currentState];
       
+      // 해결책 리스트
       const solutionItems = data.avoid.map((sol, i) => `
         <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;">
           <div style="min-width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">${i+1}</div>
           <div style="flex: 1; font-size: 14px; line-height: 1.6; color: var(--text-primary);">${sol}</div>
+        </div>
+      `).join('');
+      
+      // 도움 카드들
+      const helpItems = data.help.map(help => `
+        <div class="card-help-item">
+          <div class="card-help-header">
+            <span class="card-help-icon">${help.icon}</span>
+            <span class="card-help-name">${help.title}</span>
+          </div>
+          <div class="card-help-desc">${help.desc}</div>
         </div>
       `).join('');
       
@@ -5954,6 +5891,11 @@ Only return the JSON, no other text.`
             <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
               ${solutionItems}
             </div>
+          </div>
+          
+          <div class="card-help-section">
+            <div class="card-help-title">${t('moreHelp')}</div>
+            ${helpItems}
           </div>
           
           <div class="card-footer">
@@ -6063,12 +6005,13 @@ Only return the JSON, no other text.`
       document.getElementById('totalVisits').textContent = stats.totalVisits || 0;
       document.getElementById('statsStreak').textContent = currentStreak;
       
+      // 기분 이모지를 번역 함수로 변경
       const stateEmojis = {
-        tired: '😴 피곤함',
-        sensitive: '😤 예민함',
-        lethargic: '😶 무기력함',
-        dazed: '😐 멍함',
-        excited: '😆 들뜸'
+        tired: t('moods.tired'),
+        sensitive: t('moods.sensitive'),
+        lethargic: t('moods.lethargic'),
+        dazed: t('moods.dazed'),
+        excited: t('moods.excited')
       };
       
       const topStates = getTopItems(stats.states || {}, stateEmojis);
@@ -6079,12 +6022,19 @@ Only return the JSON, no other text.`
                 <span style="font-size: 20px; font-weight: 700; color: var(--primary); min-width: 24px;">${i+1}</span>
                 <span style="font-size: var(--font-body);">${item.label}</span>
               </div>
-              <span style="font-size: var(--font-body); font-weight: 700; color: var(--primary);">${item.count}회</span>
+              <span style="font-size: var(--font-body); font-weight: 700; color: var(--primary);">${item.count}${t('times')}</span>
             </div>
           `).join('')
-        : '<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">아직 기록이 없어요</div>';
+        : `<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">${t('noData')}</div>`;
       
-      const topJobs = getTopItems(stats.jobs || {});
+      // 직업 번역 맵 생성 (한글 → 현재 언어)
+      const jobsMap = {};
+      const koJobs = ['개발자', '디자이너', 'PM/기획자', '마케터', '영업/세일즈', '재무/회계', 'CS/상담사', '교사/강사', '프리랜서', '학생', '주부', '요식업/서비스'];
+      koJobs.forEach((koJob, index) => {
+        jobsMap[koJob] = JOBS[index];
+      });
+      
+      const topJobs = getTopItems(stats.jobs || {}, jobsMap);
       document.getElementById('topJobs').innerHTML = topJobs.length > 0
         ? topJobs.map((item, i) => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
@@ -6092,12 +6042,26 @@ Only return the JSON, no other text.`
                 <span style="font-size: 20px; font-weight: 700; color: var(--accent); min-width: 24px;">${i+1}</span>
                 <span style="font-size: var(--font-body);">${item.label}</span>
               </div>
-              <span style="font-size: var(--font-body); font-weight: 700; color: var(--accent);">${item.count}회</span>
+              <span style="font-size: var(--font-body); font-weight: 700; color: var(--accent);">${item.count}${t('times')}</span>
             </div>
           `).join('')
-        : '<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">아직 기록이 없어요</div>';
+        : `<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">${t('noData')}</div>`;
       
-      const topCategories = getTopItems(stats.categories || {});
+      // 카테고리 번역 맵 생성 (한글 카테고리 → 현재 언어 카테고리)
+      const categoriesMap = {};
+      const koJobsList = ['개발자', '디자이너', 'PM/기획자', '마케터', '영업/세일즈', '재무/회계', 'CS/상담사', '교사/강사', '프리랜서', '학생', '주부', '요식업/서비스'];
+      const states = ['tired', 'sensitive', 'lethargic', 'dazed', 'excited'];
+      
+      koJobsList.forEach((koJob, jobIndex) => {
+        const currentJobKey = JOBS[jobIndex];
+        states.forEach(state => {
+          const koCategory = ADVICE_DATA_KO[koJob][state].category;
+          const currentCategory = ADVICE_DATA[currentJobKey][state].category;
+          categoriesMap[koCategory] = currentCategory;
+        });
+      });
+      
+      const topCategories = getTopItems(stats.categories || {}, categoriesMap);
       document.getElementById('topCategories').innerHTML = topCategories.length > 0
         ? topCategories.map((item, i) => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
@@ -6105,10 +6069,10 @@ Only return the JSON, no other text.`
                 <span style="font-size: 20px; font-weight: 700; color: var(--warning); min-width: 24px;">${i+1}</span>
                 <span style="font-size: var(--font-body);">${item.label}</span>
               </div>
-              <span style="font-size: var(--font-body); font-weight: 700; color: var(--warning);">${item.count}회</span>
+              <span style="font-size: var(--font-body); font-weight: 700; color: var(--warning);">${item.count}${t('times')}</span>
             </div>
           `).join('')
-        : '<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">아직 기록이 없어요</div>';
+        : `<div style="color: var(--text-tertiary); text-align: center; padding: 20px;">${t('noData')}</div>`;
       
       // Update button texts
       const yearViewBtn = document.querySelector('#stats .btn-secondary');
@@ -6214,6 +6178,9 @@ Only return the JSON, no other text.`
       document.querySelector('#job-selection .card-title').textContent = t('jobPrompt');
       document.querySelector('#continueJobBtn').textContent = t('continue');
       
+      // 직업 버튼 렌더링
+      renderJobs();
+      
       document.querySelector('#state-selection .card-title').textContent = t('moodPrompt');
       const stateButtons = document.querySelectorAll('#state-selection .btn-outline');
       const states = ['tired', 'sensitive', 'lethargic', 'dazed', 'excited'];
@@ -6234,6 +6201,63 @@ Only return the JSON, no other text.`
       document.querySelector('.ending-sub').innerHTML = t('endingSub').replace(/\n/g, '<br>');
       document.querySelector('#ending .btn-secondary').textContent = t('dailyRecordBtn');
       document.querySelector('#ending .btn-primary').textContent = t('backToStart');
+      
+      // 통계 화면 제목과 텍스트들
+      const statsTitle = document.querySelector('#stats .section-title');
+      if (statsTitle) statsTitle.textContent = t('stats');
+      
+      // 통계 카드 레이블들 (더 정확한 선택자 사용)
+      const statsCards = document.querySelectorAll('#stats .card');
+      if (statsCards.length >= 4) {
+        // 첫 번째 카드: 총 방문 횟수, 연속 방문
+        const firstCardDivs = statsCards[0].querySelectorAll('div[style*="color: var(--text-secondary)"]');
+        if (firstCardDivs.length >= 2) {
+          firstCardDivs[0].textContent = t('totalVisits');
+          firstCardDivs[1].textContent = t('streak');
+        }
+        
+        // 연속 방문 "일" 부분 수정
+        const streakDiv = statsCards[0].querySelector('div[style*="color: var(--accent)"]');
+        if (streakDiv) {
+          const streakValue = document.getElementById('statsStreak').textContent;
+          streakDiv.innerHTML = `🔥 <span id="statsStreak">${streakValue}</span>${t('days')}`;
+        }
+        
+        // 두 번째 카드: 가장 많이 선택한 기분
+        const secondCardTitle = statsCards[1].querySelector('div[style*="font-subtitle"]');
+        if (secondCardTitle) secondCardTitle.textContent = t('topMoods');
+        
+        // 세 번째 카드: 가장 많이 선택한 직업
+        const thirdCardTitle = statsCards[2].querySelector('div[style*="font-subtitle"]');
+        if (thirdCardTitle) thirdCardTitle.textContent = t('topJobs');
+        
+        // 네 번째 카드: 가장 많이 받은 조언
+        const fourthCardTitle = statsCards[3].querySelector('div[style*="font-subtitle"]');
+        if (fourthCardTitle) fourthCardTitle.textContent = t('topCategories');
+      }
+      
+      // 통계 화면 버튼들
+      const statsYearViewBtn = document.querySelector('#stats .btn-secondary');
+      if (statsYearViewBtn) statsYearViewBtn.innerHTML = '📅 ' + t('viewYearRecord');
+      const statsCloseBtn = document.querySelectorAll('#stats .btn-primary')[0];
+      if (statsCloseBtn) statsCloseBtn.textContent = t('close');
+      const statsResetBtn = document.querySelector('#stats .btn-outline');
+      if (statsResetBtn) statsResetBtn.innerHTML = '🗑️ ' + t('resetData');
+      
+      // 하루 기록 저장 버튼
+      const saveDailyBtn = document.querySelector('#saveDailyBtn');
+      if (saveDailyBtn) saveDailyBtn.textContent = t('saveDailyRecord');
+      
+      // 연도 뷰 처음으로 버튼
+      const yearViewBackBtn = document.querySelector('#year-view .btn-primary');
+      if (yearViewBackBtn) yearViewBackBtn.textContent = t('backToStart');
+      
+      // 연도 뷰 제목들
+      const yearViewTitle = document.querySelector('#year-view .section-title');
+      if (yearViewTitle) yearViewTitle.textContent = t('yearView');
+      
+      const yearViewSoFar = document.querySelector('#year-view h3');
+      if (yearViewSoFar) yearViewSoFar.textContent = t('soFar');
     }
     
     
